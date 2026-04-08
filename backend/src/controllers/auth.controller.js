@@ -13,7 +13,7 @@ const getMe = async (req, res) => {
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
 
     if (profileError) throw new ApiError(400, profileError.message);
 
@@ -54,13 +54,13 @@ const updateProfile = async (req, res) => {
     if (headline !== undefined) updates.headline = headline;
     if (location !== undefined) updates.location = location;
     if (avatar_url !== undefined) updates.avatar_url = avatar_url;
-
+console.log(updates);
     const { data, error } = await supabase
       .from('profiles')
       .update(updates)
       .eq('id', userId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) throw new ApiError(400, error.message);
 

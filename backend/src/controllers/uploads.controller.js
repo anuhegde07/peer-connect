@@ -109,7 +109,7 @@ const uploadAvatar = async (req, res) => {
       .update({ avatar_url: url })
       .eq('id', userId)
       .select()
-      .single();
+      .maybeSingle();
 
     if (updateError) {
       throw new ApiError(400, updateError.message);
