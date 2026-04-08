@@ -54,19 +54,50 @@ const updateProfile = async (req, res) => {
     if (headline !== undefined) updates.headline = headline;
     if (location !== undefined) updates.location = location;
     if (avatar_url !== undefined) updates.avatar_url = avatar_url;
-console.log(updates);
-    const { data, error } = await supabase
+
+    // First check if profile exists
+    const { data: existingProfile } = await supabase
       .from('profiles')
-      .update(updates)
+      .select('id')
       .eq('id', userId)
-      .select()
       .maybeSingle();
 
-    if (error) throw new ApiError(400, error.message);
+    let result;
+    if (!existingProfile) {
+      // Create profile if it doesn't exist
+      const { data, error } = await supabase
+        .from('profiles')
+        .insert({
+          id: userId,
+          full_name: full_name || '',
+          bio: bio || '',
+          headline: headline || '',
+          location: location || '',
+          avatar_url: avatar_url || '',
+          xp_points: 0,
+          level: 1,
+        })
+        .select()
+        .single();
+
+      if (error) throw new ApiError(400, error.message);
+      result = data;
+    } else {
+      // Update existing profile
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updates)
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) throw new ApiError(400, error.message);
+      result = data;
+    }
 
     res.json({
       success: true,
-      data,
+      data: result,
     });
   } catch (error) {
     if (error instanceof ApiError) {
