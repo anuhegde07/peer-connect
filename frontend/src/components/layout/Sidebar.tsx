@@ -58,6 +58,7 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
   const { profile, signOut } = useAuth();
   const [isMobile, setIsMobile] = useState(false);
   const [canAccessAdmin, setCanAccessAdmin] = useState(false);
+  const [isCheckingAdmin, setIsCheckingAdmin] = useState(true);
 
   // Track viewport size for mobile detection
   useEffect(() => {
@@ -72,12 +73,16 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
 
     const verifyAdmin = async () => {
       if (!profile?.id) {
-        if (active) setCanAccessAdmin(false);
+        if (active) {
+          setCanAccessAdmin(false);
+          setIsCheckingAdmin(false);
+        }
         return;
       }
       const access = await hasAdminAccess();
       if (active) {
         setCanAccessAdmin(access);
+        setIsCheckingAdmin(false);
       }
     };
 
@@ -92,8 +97,10 @@ export default function Sidebar({ open = false, onClose }: SidebarProps) {
     await signOut();
   };
 
-  const visibleNavItems = canAccessAdmin
-    ? navItems
+  const visibleNavItems = !isCheckingAdmin
+    ? canAccessAdmin
+      ? navItems
+      : navItems.filter((item) => item.href !== '/admin/dashboard')
     : navItems.filter((item) => item.href !== '/admin/dashboard');
 
   const sidebarContent = (

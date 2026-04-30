@@ -167,7 +167,7 @@ const getMyAttempts = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const { data:quiz, error:quizError } = await supabase
+    const { data, error: quizError } = await supabase
       .from('quiz_attempts')
       .select('*, quizzes(*)')
       .eq('user_id', userId)
