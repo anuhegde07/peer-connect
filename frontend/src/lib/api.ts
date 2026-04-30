@@ -8,25 +8,46 @@ const api = axios.create({
 });
 
 api.interceptors.request.use(async (config) => {
+  // Skip auth header for guest sessions
   if (isGuestSessionActive()) {
+    console.log('Guest session active - skipping auth');
     return config;
   }
 
   try {
-    const { data: { session } } = await supabase.auth.getSession();
+    // First check if we have a session
+    let { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      // Try to refresh or get user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        // Force a session refresh
+        const refreshResult = await supabase.auth.refreshSession();
+        session = refreshResult.data.session;
+      }
+    }
+    
     if (session?.access_token) {
       config.headers.Authorization = `Bearer ${session.access_token}`;
+      console.log('Auth token added to request');
+    } else {
+      console.log('No session found - no auth token');
     }
-  } catch {
-    // If Supabase is unreachable, continue as unauthenticated request.
+  } catch (err) {
+    console.error('Auth interceptor error:', err);
   }
 
   return config;
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API Response:', response.config.url, response.status);
+    return response;
+  },
   async (error) => {
+    console.error('API Error:', error.config?.url, error.response?.status, error.response?.data);
     if (error.response?.status === 401) {
       if (isGuestSessionActive()) {
         return Promise.reject(error);

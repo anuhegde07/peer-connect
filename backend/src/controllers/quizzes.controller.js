@@ -167,13 +167,13 @@ const getMyAttempts = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    const { data, error } = await supabase
+    const { data:quiz, error:quizError } = await supabase
       .from('quiz_attempts')
       .select('*, quizzes(*)')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .order('completed_at', { ascending: false });
 
-    if (error) throw new ApiError(400, error.message);
+    if (quizError) throw new ApiError(400, quizError.message);
 
     res.json({
       success: true,

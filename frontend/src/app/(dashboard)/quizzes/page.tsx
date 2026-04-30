@@ -10,6 +10,7 @@ import Skeleton from '@/components/ui/Skeleton';
 import EmptyState from '@/components/ui/EmptyState';
 import { unwrapData } from '@/lib/apiResponse';
 import api from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface QuizQuestion {
   question: string;
@@ -34,6 +35,7 @@ interface QuizAttempt {
 }
 
 export default function QuizzesPage() {
+  const { user, loading: authLoading } = useAuth();
   const [quizzes, setQuizzes] = useState<Quiz[]>([]);
   const [attempts, setAttempts] = useState<QuizAttempt[]>([]);
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
@@ -43,21 +45,41 @@ export default function QuizzesPage() {
   const [lastResult, setLastResult] = useState<{ score: number; passed: boolean } | null>(null);
 
   const loadData = async () => {
+    if (!user) {
+      toast.error('Please log in to access quizzes');
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
-      const [quizRes, attemptsRes] = await Promise.all([api.get('/quizzes?limit=30'), api.get('/quizzes/me/attempts')]);
-      setQuizzes(unwrapData<Quiz[]>(quizRes) || []);
-      setAttempts(unwrapData<QuizAttempt[]>(attemptsRes) || []);
+      console.log('Loading quizzes with user:', user.id);
+      
+      // Load quizzes first
+      const quizRes = await api.get('/quizzes?limit=30');
+      console.log('Quiz response:', quizRes.data);
+      const quizzesData = unwrapData<Quiz[]>(quizRes);
+      setQuizzes(quizzesData || []);
+      
+      // Then load attempts
+      const attemptsRes = await api.get('/quizzes/me/attempts');
+      console.log('Attempts response:', attemptsRes.data);
+      const attemptsData = unwrapData<QuizAttempt[]>(attemptsRes);
+      setAttempts(attemptsData || []);
+      
     } catch (error: any) {
-      toast.error(error?.response?.data?.message || 'Failed to load quizzes');
+      console.error('Quiz load error:', error);
+      const errorMsg = error?.response?.data?.message || error?.message || 'Failed to load quizzes';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (!authLoading) {
+      loadData();
+    }
+  }, [authLoading, user]);
 
   const openQuiz = (quiz: Quiz) => {
     setSelectedQuiz(quiz);
@@ -85,11 +107,28 @@ export default function QuizzesPage() {
     }
   };
 
-  if (loading) {
+  if (authLoading || loading) {
     return (
       <div className="space-y-4">
         <Skeleton variant="rect" className="h-24" />
         <Skeleton variant="rect" className="h-64" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="space-y-6">
+        <Card className="p-6">
+          <div className="flex items-center gap-2">
+            <HelpCircle className="h-5 w-5 text-blue-500" />
+            <h1 className="text-2xl font-bold text-slate-900">Quizzes and Assessments</h1>
+          </div>
+        </Card>
+        <EmptyState
+          title="Login required"
+          description="Please log in to access quizzes."
+        />
       </div>
     );
   }
