@@ -93,3 +93,13 @@ body {
   height: 0;
   pointer-events: none;
 }
+
+/* Hide Next.js Route Prefetch Indicator */
+[data-nextjs-devtools] {
+  display: none !important;
+}
+
+/* Hide any Next.js floating devtools button or overlays */
+[data-nextjs-devtools], [id^="nextjs"] {
+  display: none !important;
+}

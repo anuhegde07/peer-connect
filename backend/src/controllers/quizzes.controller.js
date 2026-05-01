@@ -171,7 +171,7 @@ const getMyAttempts = async (req, res) => {
       .from('quiz_attempts')
       .select('*, quizzes(*)')
       .eq('user_id', userId)
-      .order('created_at', { ascending: false });
+      .order('completed_at', { ascending: false });
 
     if (error) throw new ApiError(400, error.message);
 

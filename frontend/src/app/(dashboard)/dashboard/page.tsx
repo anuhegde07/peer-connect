@@ -448,7 +448,7 @@ export default function DashboardPage() {
                       <p className="text-xs text-slate-400 truncate">{rec.user.headline}</p>
                     )}
                     <div className="flex flex-wrap gap-1 mt-1">
-                      {rec.matchingSkills.slice(0, 3).map((ms) => (
+                      {rec.matchingSkills?.slice(0, 3).map((ms) => (
                         <Badge key={ms.skillName} variant="primary" size="sm">
                           {ms.skillName}
                         </Badge>
