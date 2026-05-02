@@ -275,7 +275,12 @@ const addResource = async (req, res) => {
 const enrollInCourse = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { courseId } = req.params;
+    console.log('enrollInCourse params:', req.params);
+    const { id: courseId } = req.params;
+
+    if (!courseId) {
+      throw new ApiError(400, 'courseId is required');
+    }
 
     const { data, error } = await supabase
       .from('enrollments')

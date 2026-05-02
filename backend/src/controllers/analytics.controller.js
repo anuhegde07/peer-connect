@@ -14,9 +14,12 @@ const getDashboard = async (req, res) => {
       .from('profiles')
       .select('xp_points, level')
       .eq('id', userId)
-      .single();
-
+      .maybeSingle();
+    
     if (profileError) throw new ApiError(400, profileError.message);
+    
+    // Use defaults if profile doesn't exist
+    const profileData = profile || { xp_points: 0, level: 1 };
 
     // Count user skills
     const { count: skillsCount, error: skillsError } = await supabase
@@ -58,8 +61,8 @@ const getDashboard = async (req, res) => {
         total_skills: skillsCount || 0,
         courses_enrolled: enrollmentsCount || 0,
         articles_written: articlesCount || 0,
-        xp_points: profile.xp_points || 0,
-        level: profile.level || 1,
+        xp_points: profileData.xp_points || 0,
+        level: profileData.level || 1,
         recent_activity: recentActivity,
       },
     });
