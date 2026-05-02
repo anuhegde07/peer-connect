@@ -234,12 +234,21 @@ const deleteCourse = async (req, res) => {
  */
 const addResource = async (req, res) => {
   try {
-    const { courseId } = req.params;
+    const { id: courseId } = req.params;
     const { title, type, url, youtube_id, duration_minutes, order_index } = req.body;
 
     if (!title || !type) {
       throw new ApiError(400, 'Title and type are required');
     }
+
+    // Verify course exists
+    const { data: course, error: courseError } = await supabase
+      .from('courses')
+      .select('id')
+      .eq('id', courseId)
+      .single();
+
+    if (courseError) throw new ApiError(404, 'Course not found');
 
     const { data, error } = await supabase
       .from('resources')

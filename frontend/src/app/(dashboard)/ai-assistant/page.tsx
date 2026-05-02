@@ -170,15 +170,6 @@ export default function AIAssistantPage() {
             </div>
           )}
           <div className="space-y-2">
-            {searchResults.map((item) => (
-              <div key={item.id} className="rounded-lg border border-slate-200 p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <p className="font-medium text-slate-900">{item.title}</p>
-                  {item.category && <Badge>{item.category}</Badge>}
-                </div>
-                <p className="mt-1 text-sm text-slate-600">{item.content?.slice(0, 180)}...</p>
-              </div>
-            ))}
             {!searchLoading && searchQuery && searchResults.length === 0 && (
               <EmptyState
                 icon={<Sparkles className="h-7 w-7" />}
